@@ -20,6 +20,7 @@ public class UnitTestResult implements Serializable {
 
     private boolean passed = false;
     private boolean timedOut = false;
+    public boolean warmup = false;
     private String exceptionType = "N/A";
     private String exceptionMessage = "N/A";
     private String expectedValue = "N/A";

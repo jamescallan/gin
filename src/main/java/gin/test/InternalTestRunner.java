@@ -81,6 +81,9 @@ public class InternalTestRunner extends TestRunner {
         this.failFast = failFast;
     }
 
+    public UnitTestResultSet runTests(Patch patch, int reps) {
+        return  runTests(patch, reps, 0);
+    }
     /**
      * Apply and compile the given patch, then run all unit tests against it.
      *
@@ -88,7 +91,7 @@ public class InternalTestRunner extends TestRunner {
      * @param reps  Number of times to run each test.
      * @return the results of the tests
      */
-    public UnitTestResultSet runTests(Patch patch, int reps) {
+    public UnitTestResultSet runTests(Patch patch, int reps, int warmup_reps) {
         List<UnitTestResult> results;
         // Create a new class loader for every compilation, otherwise java will cache the modified class for us
         CacheClassLoader classLoader = new CacheClassLoader(this.getClassPath());
@@ -112,7 +115,7 @@ public class InternalTestRunner extends TestRunner {
                 // Run tests
                 if (compiledOK) {
                     classLoader.setCustomCompiledCode(this.getClassName(), code.getByteCode());
-                    results = runTests(reps, classLoader);
+                    results = runTests(reps, warmup_reps, classLoader);
                 } else {
                     results = emptyResults(reps);
                 }
@@ -136,10 +139,21 @@ public class InternalTestRunner extends TestRunner {
      * @param reps        Number of times to run each test
      * @param classLoader CacheClassLoader containing correct classpath and any modified classes.
      */
-    private List<UnitTestResult> runTests(int reps, CacheClassLoader classLoader) {
+    private List<UnitTestResult> runTests(int reps,int warmup_reps, CacheClassLoader classLoader) {
 
         List<UnitTest> testsToRun = this.getTests();
         List<UnitTestResult> results = new LinkedList<>();
+        for (int w=1; w<= warmup_reps; w++) {
+            for (UnitTest testToRun : testsToRun) {
+                // Run the test.
+                UnitTestResult testResult = runSingleTest(testToRun, classLoader, w);
+                testResult.warmup=true;
+                results.add(testResult);
+                if (failFast && !testResult.getPassed()) {
+                    return results;
+                }
+            }
+        }
         for (int r = 1; r <= reps; r++) {
             for (UnitTest testToRun : testsToRun) {
                 // Run the test.

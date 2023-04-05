@@ -69,6 +69,8 @@ public abstract class Sampler implements Serializable {
     protected Long timeoutMS = 10000L;
     @Argument(alias = "r", description = "Repeat each test r times")
     protected Integer reps = 1;
+    @Argument(alias = "w", description = "Number of warmup runs")
+    protected Integer warump_reps = 0;
     @Argument(alias = "nm", description = "Number of methods from the method data to sample from. 0 for all.")
     protected Integer numberOfMethodsToSample = 0;
 
@@ -239,7 +241,7 @@ public abstract class Sampler implements Serializable {
     private UnitTestResultSet testPatchInternally(String targetClass, List<UnitTest> tests, Patch patch) {
 
         InternalTestRunner testRunner = new InternalTestRunner(targetClass, classPath, tests, failFast);
-        return testRunner.runTests(patch, reps);
+        return testRunner.runTests(patch, reps, warump_reps);
     }
 
     private UnitTestResultSet testPatchInSubprocess(String targetClass, List<UnitTest> tests, Patch patch) {

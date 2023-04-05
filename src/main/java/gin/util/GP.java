@@ -17,10 +17,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serial;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 
 /**
@@ -138,6 +135,7 @@ public abstract class GP extends Sampler {
                 , "AllTestsPassed"
                 , "TotalExecutionTime(ms)"
                 , "Fitness"
+                , "Warmup Executions (ms)"
                 , "FitnessImprovement"
         };
         try {
@@ -151,6 +149,26 @@ public abstract class GP extends Sampler {
     }
 
     protected void writePatch(UnitTestResultSet results, String methodName, double fitness, double improvement) {
+        if (warump_reps > 0){
+            ArrayList<Long> warmup_times = results.getWarmupTimes();
+            String warmup_string = "[";
+            for (Long time : warmup_times){
+                warmup_string += Float.toString(time / 1000000.0f);
+                warmup_string += ";";
+            }
+            warmup_string += "]";
+            String[] entry = {methodName
+                    , results.getPatch().toString()
+                    , Boolean.toString(results.getCleanCompile())
+                    , Boolean.toString(results.allTestsSuccessful())
+                    , Float.toString(results.totalExecutionTime() / 1000000.0f)
+                    , Double.toString(fitness)
+                    , warmup_string
+                    , Double.toString(improvement)
+            };
+            outputFileWriter.writeNext(entry);
+            return;
+        }
         String[] entry = {methodName
                 , results.getPatch().toString()
                 , Boolean.toString(results.getCleanCompile())

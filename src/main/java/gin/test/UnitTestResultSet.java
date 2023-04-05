@@ -75,9 +75,20 @@ public class UnitTestResultSet implements Serializable {
     public long totalExecutionTime() {
         long totalTime = 0;
         for (UnitTestResult testResult : results) {
+            if (! testResult.warmup);
             totalTime += testResult.getExecutionTime();
         }
         return totalTime;
+    }
+
+    public ArrayList<Long> getWarmupTimes(){
+        ArrayList<Long> times = new ArrayList<>();
+        for (UnitTestResult testResult : results) {
+            if (testResult.warmup) {
+                times.add(testResult.getExecutionTime());
+            }
+        }
+        return times;
     }
 
     public long totalMemoryUsage() {
